@@ -1,6 +1,6 @@
-
 const { db, admin } = require("../util/admin");
 const BusBoy = require("busboy");
+
 
 exports.getAllEvents = (req, res) => {
     db.collection('events')
@@ -13,9 +13,8 @@ exports.getAllEvents = (req, res) => {
                 eventId: doc.id,
                 artist: doc.data().artist,
                 eventDate: doc.data().eventDate,
-                instagramUrl: doc.data().instagramUrl,
                 spotifyUrl: doc.data().spotifyUrl,
-                imageUrl: doc.data().imageUrl
+                image: doc.data().image
             });
         });
         return res.json(events);
@@ -24,27 +23,26 @@ exports.getAllEvents = (req, res) => {
 };
 
 exports.createEvent = (req, res) => {
-    let eventDate; 
-    let createImageUrl = createImage(req);
-
-    const newEvent = {
-        artist: req.body.artist,
-        eventDate: new Date().toISOString(),
-        instagramUrl: req.body.instagramUrl,
-        spotifyUrl: req.body.spotifyUrl,
-        imageUrl: createImageUrl
-    };
-    
-    db
-        .collection('events')
-        .add(newEvent)
-        .then(doc => {
-            res.json({message: `document ${doc.id} created successfully`});
-        })
-        .catch((err) => {
-            res.status(500).json({error: 'Something went wrong'});
-            console.error(err);
-        });
+  let createImageUrl = createImage(req);
+  
+  const newEvent = {
+      artist: req.body.artist,
+      eventDate: db.Timestamp.fromDate(req.body.date),
+      instagramUrl: req.body.instagramUrl,
+      spotifyUrl: req.body.spotifyUrl,
+      imageUrl: createImageUrl,
+  };
+  
+  db
+      .collection('events')
+      .add(newEvent)
+      .then(doc => {
+          res.json({message: `document ${doc.id} created successfully`});
+      })
+      .catch((err) => {
+          res.status(500).json({error: 'Something went wrong'});
+          console.error(err);
+      });
 };
 
 const createImage = (req) => {
